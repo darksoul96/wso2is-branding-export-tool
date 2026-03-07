@@ -18,7 +18,7 @@ The export process targets multiple levels of branding within an instance:
 Retrieve the general branding options for the super tenant (`carbon.super`).
 
 ```bash
-curl --location 'https://localhost:9445/api/server/v1/branding-preference?type=ORG&name=carbon.super' \
+curl --location 'https://<IS_HOST>/api/server/v1/branding-preference?type=ORG&name=carbon.super' \
 --header 'accept: application/json'
 ```
 
