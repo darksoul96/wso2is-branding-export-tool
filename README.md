@@ -2,25 +2,22 @@
 
 ## Overview
 The export process targets multiple levels of branding within an instance:
-* **Global Level (Root)**
-* **Tenant Level**
+* **Global Level (carbon.super)**
+* **Org Level**
 * **Application Level**
 
 ### Target Entities
-* **Tenants:** `Org1`, `Org2`
-* **Applications:** `openid-app`, `saml-app`, `myaccount`
+* **Super tenant** `carbon.super`
+* **Sub Organizations:** `Org1`, `Org2`
+* **Applications:**
 
 ---
 
-## Phase 1: Global Branding Preferences (Root Level)
+## Phase 1: Global Branding Preferences
 
 ### 1.1 Super Tenant Branding
 Retrieve the general branding options for the super tenant (`carbon.super`).
-
-```bash
-curl --location 'https://<IS_HOST>/api/server/v1/branding-preference?type=ORG&name=carbon.super' \
---header 'accept: application/json'
-```
+`GET '/api/server/v1/branding-preference?type=ORG'`
 
 ### 1.2 Global Custom Text (Localization)
 Retrieve custom text for specific screens and locales.
@@ -45,7 +42,14 @@ Retrieve custom text for specific screens and locales.
 * myaccount
 * email-template
 
-### 1.3 Global Notification Templates (SMS/Email)
+### 1.3 Loop through sub-organizations and retrieve global branding and screen branding
+Retrieve the general branding options for sub-organizations: 
+`GET '/o/<org-id>/api/server/v1/branding-preference?type=ORG'`
+
+Retrieve screen branding per sub-org and locale
+`GET /o/<org-id>/api/server/v1/branding-preference/text?type=ORG&name=WSO2&locale=en-US&screen={screen_name}`
+
+### 1.4 Global Notification Templates (SMS/Email)
 
 #### Email Templates
 * **List Types:** `GET /api/server/v1/notification/email/template-types`
@@ -63,7 +67,7 @@ Retrieve custom text for specific screens and locales.
 
 ---
 
-## Phase 2: Application Level (Super Tenant)
+## Phase 2: Application Level
 
 1. **List Applications:**
    `GET /api/server/v1/applications`
@@ -72,24 +76,6 @@ Retrieve custom text for specific screens and locales.
    For each `{app-name}` found in the application list:
    `GET /api/server/v1/branding-preference?type=APP&name={app-name}`
 
----
 
-## Phase 3: Individual Tenant Loop
-
-Iterate through each tenant domain (e.g., `Org1`, `Org2`) and perform the following:
-
-### 3.1 Tenant Level Branding
-* **Branding Preferences:** `GET /api/server/v1/branding-preference?type=ORG&name={tenant-domain}`
-* **Custom Text:** `GET /api/server/v1/branding-preference/custom-text?type=ORG&name={tenant-domain}&locale=en-US`
-
-### 3.2 Tenant Notification Templates
-Retrieve templates using the tenant-qualified URL:
-`GET /t/{tenant-domain}/api/server/v1/notification/...`
-
-### 3.3 Tenant Applications
-1. **List Apps for Tenant:**
-   `GET /t/{tenant-domain}/api/server/v1/applications`
-
-2. **Export App-Specific Branding:**
-   For each application with an explicit preference set:
-   `GET /t/{tenant-domain}/api/server/v1/branding-preference?type=APP&name={app-name}`
+## Phase 3: Import & Promote
+Retrieve the previously created artifacts and use the payload information to import and promote branding options to a higher environment.
