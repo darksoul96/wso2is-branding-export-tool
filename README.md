@@ -79,3 +79,18 @@ Retrieve screen branding per sub-org and locale
 
 ## Phase 3: Import & Promote
 Retrieve the previously created artifacts and use the payload information to import and promote branding options to a higher environment.
+
+
+
+
+
+
+### How to use
+As per the latest version of this script, in order to run and extract the branding information it's necessary to modify the "Configuration" entries at the top of the script. Specifically the BASE_URL, AUTH (Basic at the moment), TENANT_IDS and TENANT_NAMES.
+If needed, the export directories can be changed to point somewhere else.
+
+
+
+
+
+
