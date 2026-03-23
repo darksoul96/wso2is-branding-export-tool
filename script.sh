@@ -3,11 +3,47 @@
 # Configuration
 BASE_URL="https://localhost:9445"
 SCREENS=("login" "sms-otp" "email-otp" "totp" "push-auth" "sign-up" "password-recovery" "password-reset" "password-reset-success" "email-link-expiry" "username-recovery-claim" "username-recovery-channel-selection" "username-recovery-success" "myaccount" "email-template")
-AUTH="Basic YzlKUTh1bTh3ckMyZUM0NDczbFhaZWFFWjJzYTp2dDQwYzBXVkFZRFhHMjJLTGQ3WXB1R1RpMkxybFA1UmhSRkdFcGNlMEZJYQ=="
-TENANT_IDS=("bcbdd295-72bb-49e1-a77a-6cab8b121b37")
-TENANT_NAMES=("Partners")
+AUTH="Basic YWRtaW46YWRtaW4="
 FILE_PATH="exports/carbon.super/global.json"
 mkdir -p "exports/carbon.super"
+
+# --- Retrieve tenant names ---
+TENANT_NAMES=()
+TENANT_LIST_RESULTS=$(curl -k -f -s \
+    -H "Authorization: ${AUTH}" \
+    -H "accept: application/json" \
+    "${BASE_URL}/api/server/v1/tenants")
+
+while read -r line; do
+    [ -n "$line" ] && TENANT_NAMES+=("$line")
+done <<EOF
+$(echo "$TENANT_LIST_RESULTS" | jq -r '.tenants[].name')
+EOF
+# --- END Retrieve tenant names ---
+
+
+# --- Retrieve email template types IDs and names ---
+EMAIL_TEMPLATE_TYPES_IDS=()
+EMAIL_TEMPLATE_TYPES_NAMES=()
+EMAIL_TEMPLATE_TYPES=$(curl -k -f -s \
+    -H "Authorization: ${AUTH}" \
+    -H "accept: application/json" \
+    "${BASE_URL}/api/server/v1/notification/email/template-types")
+
+while read -r line; do
+    [ -n "$line" ] && EMAIL_TEMPLATE_TYPES_IDS+=("$line")
+done <<EOF
+$(echo "$EMAIL_TEMPLATE_TYPES" | jq -r '.[].id')
+EOF
+
+while read -r line; do
+    [ -n "$line" ] && EMAIL_TEMPLATE_TYPES_NAMES+=("$line")
+done <<EOF
+$(echo "$EMAIL_TEMPLATE_TYPES" | jq -r '.[].displayName')
+EOF
+# --- END Retrieve email template types IDs and names ---
+
+
 # --- carbon.super global branding options ---
 STATUS=$(curl -k -f -s -o "$FILE_PATH" -w "%{http_code}" \
     -H "Authorization: ${AUTH}" \
@@ -44,14 +80,14 @@ done
 
 
 # --- Branding options per tenant ---
-for i in "${!TENANT_IDS[@]}"; do
+for i in "${!TENANT_NAMES[@]}"; do
     # --- Global branding per tenant ---
     mkdir -p "exports/${TENANT_NAMES[$i]}"
     FILE_PATH="exports/${TENANT_NAMES[$i]}/global_branding_${TENANT_NAMES[$i]}.json"
     STATUS=$(curl -k -f -s -o "$FILE_PATH" -w "%{http_code}" \
         -H "Authorization: ${AUTH}" \
         -H "accept: application/json" \
-        "${BASE_URL}/o/${TENANT_IDS[$i]}/api/server/v1/branding-preference?type=ORG")
+        "${BASE_URL}/t/${TENANT_NAMES[$i]}/api/server/v1/branding-preference?type=ORG")
 
     if [ "$STATUS" -eq 200 ]; then
         echo "[OK] Saved global_branding_${TENANT_NAMES[$i]}.json"
@@ -69,7 +105,7 @@ for i in "${!TENANT_IDS[@]}"; do
         STATUS=$(curl -k -f -s -o "$FILE_PATH" -w "%{http_code}" \
             -H "Authorization: ${AUTH}" \
             -H "accept: application/json" \
-            "${BASE_URL}/o/${TENANT_IDS[$i]}/api/server/v1/branding-preference?type=ORG&locale=en-US&screen=${SCREEN}")
+            "${BASE_URL}/t/${TENANT_NAMES[$i]}/api/server/v1/branding-preference?type=ORG&locale=en-US&screen=${SCREEN}")
 
         if [ "$STATUS" -eq 200 ]; then
             echo "[OK] Saved ${TENANT_NAMES[$i]}/screens/${SCREEN}.json"
